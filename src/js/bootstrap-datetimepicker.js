@@ -133,38 +133,26 @@
              *
              ********************************************************************************/
             getMoment = function (d) {
-                var tzEnabled = false,
-                    returnMoment,
-                    currentZoneOffset,
-                    incomingZoneOffset,
-                    timeZoneIndicator,
-                    dateWithTimeZoneInfo;
+              var returnMoment;
 
-                if (moment.tz !== undefined && options.timeZone !== undefined && options.timeZone !== null && options.timeZone !== '') {
-                    tzEnabled = true;
-                }
-                if (d === undefined || d === null) {
-                    if (tzEnabled) {
-                        returnMoment = moment().tz(options.timeZone);
-                    } else {
-                        returnMoment = moment();
-                    }
-                } else {
-                    if (tzEnabled) {
-                        currentZoneOffset = moment().tz(options.timeZone).utcOffset();
-                        incomingZoneOffset = moment(d, parseFormats, options.useStrict).utcOffset();
-                        if (incomingZoneOffset !== currentZoneOffset) {
-                            timeZoneIndicator = moment().tz(options.timeZone).format('Z');
-                            dateWithTimeZoneInfo = moment(d, parseFormats, options.useStrict).format('YYYY-MM-DD[T]HH:mm:ss') + timeZoneIndicator;
-                            returnMoment = moment(dateWithTimeZoneInfo, parseFormats, options.useStrict).tz(options.timeZone);
-                        } else {
-                            returnMoment = moment(d, parseFormats, options.useStrict).tz(options.timeZone);
-                        }
-                    } else {
-                        returnMoment = moment(d, parseFormats, options.useStrict);
-                    }
-                }
-                return returnMoment;
+              if (d === undefined || d === null) {
+                  returnMoment = moment(); //TODO should this use format? and locale?
+              } else if (isUTC()) { // There is a string to parse and we are working on UTC dates
+                  returnMoment = moment.utc(d, parseFormats, options.useStrict);
+              } else if (hasTimeZone()) { // There is a string to parse and a default time zone
+                  // parse with the tz function which takes a default time zone if it is not in the format string
+                  returnMoment = moment.tz(d, parseFormats, options.useStrict, options.timeZone);
+              } else {
+                  returnMoment = moment(d, parseFormats, options.useStrict);
+              }
+
+              if (isUTC()) {
+                  returnMoment.utc();
+              } else if (hasTimeZone()) {
+                  returnMoment.tz(options.timeZone);
+              }
+
+              return returnMoment;
             },
             isEnabled = function (granularity) {
                 if (typeof granularity !== 'string' || granularity.length > 1) {
@@ -190,6 +178,14 @@
             },
             hasTime = function () {
                 return (isEnabled('h') || isEnabled('m') || isEnabled('s'));
+            },
+
+            hasTimeZone = function () {
+                return moment.tz !== undefined && options.timeZone !== undefined && options.timeZone !== null && options.timeZone !== '';
+            },
+
+            isUTC = function () {
+                return options.timeZone === 'UTC';
             },
 
             hasDate = function () {
@@ -860,6 +856,12 @@
                 }
 
                 targetMoment = targetMoment.clone().locale(options.locale);
+
+                if (isUTC()) {
+                    targetMoment.utc();
+                } else if (hasTimeZone()) {
+                    targetMoment.tz(options.timeZone);
+                }
 
                 if (options.stepping !== 1) {
                     targetMoment.minutes((Math.round(targetMoment.minutes() / options.stepping) * options.stepping) % 60).seconds(0);
