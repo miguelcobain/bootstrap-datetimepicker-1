@@ -836,7 +836,7 @@
                 fillTime();
             },
 
-            setValue = function (targetMoment) {
+            setValue = function (targetMoment, useLocal) {
                 var oldDate = unset ? null : date;
 
                 // case of calling setValue(null or false)
@@ -855,7 +855,7 @@
 
                 targetMoment = targetMoment.clone().locale(options.locale);
 
-                if (isUTC()) {
+                if (isUTC() && !useLocal) {
                     targetMoment.utc();
                 } else if (hasTimeZone()) {
                     targetMoment.tz(options.timeZone);
@@ -1192,7 +1192,7 @@
                     if (typeof options.useCurrent === 'string') {
                         currentMoment = useCurrentGranularity[options.useCurrent](currentMoment);
                     }
-                    setValue(currentMoment);
+                    setValue(currentMoment, true);
                 }
 
                 widget = getTemplate();
