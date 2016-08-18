@@ -146,7 +146,9 @@
                   returnMoment = moment(d, parseFormats, options.useStrict);
               }
 
-              if (hasTimeZone()) {
+              if (isUTC()) {
+                  returnMoment.utc();
+              } else if (hasTimeZone()) {
                   returnMoment.tz(options.timeZone);
               }
 
@@ -836,7 +838,7 @@
                 fillTime();
             },
 
-            setValue = function (targetMoment, useLocal) {
+            setValue = function (targetMoment) {
                 var oldDate = unset ? null : date;
 
                 // case of calling setValue(null or false)
@@ -855,7 +857,7 @@
 
                 targetMoment = targetMoment.clone().locale(options.locale);
 
-                if (isUTC() && !useLocal) {
+                if (isUTC()) {
                     targetMoment.utc();
                 } else if (hasTimeZone()) {
                     targetMoment.tz(options.timeZone);
@@ -1188,11 +1190,16 @@
                 if (input.val() !== undefined && input.val().trim().length !== 0) {
                     setValue(parseInputDate(input.val().trim()));
                 } else if (options.useCurrent && unset && ((input.is('input') && input.val().trim().length === 0) || options.inline)) {
-                    currentMoment = getMoment();
+                    if (isUTC()) {
+                      var date = new Date();
+                      currentMoment = moment(new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()))).utc()
+                    } else {
+                      currentMoment = getMoment();
+                    }
                     if (typeof options.useCurrent === 'string') {
                         currentMoment = useCurrentGranularity[options.useCurrent](currentMoment);
                     }
-                    setValue(currentMoment, true);
+                    setValue(currentMoment);
                 }
 
                 widget = getTemplate();
