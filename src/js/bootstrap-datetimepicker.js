@@ -1146,7 +1146,13 @@
                 clear: clear,
 
                 today: function () {
-                    var todaysDate = getMoment();
+                    var todaysDate = null;
+                    if (isUTC()) {
+                      var date = new Date();
+                      todaysDate = moment(new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()))).utc()
+                    } else {
+                      todaysDate = getMoment();
+                    }
                     if (isValid(todaysDate, 'd')) {
                         setValue(todaysDate);
                     }
