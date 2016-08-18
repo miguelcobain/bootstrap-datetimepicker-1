@@ -146,9 +146,7 @@
                   returnMoment = moment(d, parseFormats, options.useStrict);
               }
 
-              if (isUTC()) {
-                  returnMoment.utc();
-              } else if (hasTimeZone()) {
+              if (hasTimeZone()) {
                   returnMoment.tz(options.timeZone);
               }
 
